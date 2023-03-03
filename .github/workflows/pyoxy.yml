@@ -21,6 +21,7 @@ jobs:
 
       - name: Build pyoxidizer Executable
         run: |
+          sudo apt-get install musl-tools
           cargo build --bin pyoxidizer --target x86_64-unknown-linux-musl
           cargo build --bin pyoxidizer --target aarch64-unknown-linux-musl
           # The binary is a bit large so strip it.
