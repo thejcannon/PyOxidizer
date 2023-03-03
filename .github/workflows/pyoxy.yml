@@ -1,45 +1,52 @@
 on:
   push:
     branches-ignore:
-      - 'ci-test'
+      - "ci-test"
     tags-ignore:
-      - '**'
+      - "**"
   pull_request:
   schedule:
-    - cron: '13 15 * * *'
+    - cron: "13 15 * * *"
   workflow_dispatch:
 jobs:
   pyoxidizer-linux:
-    runs-on: 'ubuntu-22.04'
+    runs-on: "ubuntu-22.04"
     steps:
       - uses: actions/checkout@v3
 
       - uses: ./.github/actions/rust-bootstrap
         with:
           rust_toolchain: stable
-          rust_target: x86_64-unknown-linux-musl
+          rust_targets: x86_64-unknown-linux-musl,aarch64-unknown-linux-musl
 
       - name: Build pyoxidizer Executable
         run: |
           cargo build --bin pyoxidizer --target x86_64-unknown-linux-musl
+          cargo build --bin pyoxidizer --target aarch64-unknown-linux-musl
           # The binary is a bit large so strip it.
           strip target/x86_64-unknown-linux-musl/debug/pyoxidizer
+          strip target/aarch64-unknown-linux-musl/debug/pyoxidizer
 
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: pyoxidizer-exe-linux
+          name: pyoxidizer-exe-linux-x86_64
           path: target/x86_64-unknown-linux-musl/debug/pyoxidizer
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: pyoxidizer-exe-linux-aarch64
+          path: target/aarch64-unknown-linux-musl/debug/pyoxidizer
 
   pyoxidizer-macos:
-    runs-on: 'macos-12'
+    runs-on: "macos-12"
     steps:
       - uses: actions/checkout@v3
 
       - uses: ./.github/actions/rust-bootstrap
         with:
           rust_toolchain: stable
-          rust_target: x86_64-apple-darwin
+          rust_targets: x86_64-apple-darwin
 
       - name: Build pyoxidizer Executable
         run: |
@@ -60,21 +67,22 @@ jobs:
       fail-fast: false
       matrix:
         python_version:
-          - '3.8'
-          - '3.9'
-          - '3.10'
+          - "3.8"
+          - "3.9"
+          - "3.10"
         target_triple:
-          - 'x86_64-unknown-linux-gnu'
+          - "x86_64-unknown-linux-gnu"
+          - "aarch64-unknown-linux-gnu"
           # Not yet working due to rust config issues.
           # - 'x86_64-unknown-linux-musl'
-    runs-on: 'ubuntu-22.04'
+    runs-on: "ubuntu-22.04"
     steps:
       - uses: actions/checkout@v3
 
       - uses: ./.github/actions/rust-bootstrap
         with:
           rust_toolchain: stable
-          rust_target: ${{ matrix.target_triple }}
+          rust_targets: ${{ matrix.target_triple }}
 
       - name: Download PyOxidizer Executable
         uses: actions/download-artifact@v3
@@ -121,23 +129,23 @@ jobs:
       fail-fast: false
       matrix:
         python_version:
-          - '3.8'
-          - '3.9'
-          - '3.10'
+          - "3.8"
+          - "3.9"
+          - "3.10"
         target_triple:
-          - 'aarch64-apple-darwin'
-          - 'x86_64-apple-darwin'
-    runs-on: 'macos-12'
+          - "aarch64-apple-darwin"
+          - "x86_64-apple-darwin"
+    runs-on: "macos-12"
     env:
-      IN_CI: '1'
+      IN_CI: "1"
       AWS_REGION: us-west-2
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      SCCACHE_BUCKET: 'pyoxidizer-sccache'
-      SCCACHE_S3_USE_SSL: '1'
+      SCCACHE_BUCKET: "pyoxidizer-sccache"
+      SCCACHE_S3_USE_SSL: "1"
       # Prevent sccache server from stopping due to inactivity.
-      SCCACHE_IDLE_TIMEOUT: '0'
-      CARGO_INCREMENTAL: '0'
+      SCCACHE_IDLE_TIMEOUT: "0"
+      CARGO_INCREMENTAL: "0"
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@v3
@@ -147,7 +155,7 @@ jobs:
       - uses: ./.github/actions/rust-bootstrap
         with:
           rust_toolchain: stable
-          rust_target: ${{ matrix.target_triple }}
+          rust_targets: ${{ matrix.target_triple }}
 
       - name: Download PyOxidizer Executable
         uses: actions/download-artifact@v3
@@ -173,10 +181,10 @@ jobs:
       fail-fast: false
       matrix:
         python_version:
-          - '3.8'
-          - '3.9'
-          - '3.10'
-    runs-on: 'macos-12'
+          - "3.8"
+          - "3.9"
+          - "3.10"
+    runs-on: "macos-12"
     steps:
       - uses: actions/checkout@v3
         with:

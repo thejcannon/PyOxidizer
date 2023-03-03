@@ -5,8 +5,8 @@ inputs:
     description: rustup toolchain to install
     default: stable
     required: false
-  rust_target:
-    description: rust target triple to install
+  rust_targets:
+    description: comma-separated rust targets triple to install
     required: true
 runs:
   using: composite
@@ -16,7 +16,7 @@ runs:
     - uses: dtolnay/rust-toolchain@v1
       with:
         toolchain: ${{ inputs.rust_toolchain }}
-        targets: ${{ inputs.rust_target }}
+        targets: ${{ inputs.rust_targets }}
         components: clippy
 
     - uses: taiki-e/install-action@nextest
